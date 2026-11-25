@@ -1,0 +1,15 @@
+{
+  "name": "arquiteto",
+  "displayName": "Arquiteto 3D (Blueprint + vgpu + Teardown + Kimi 3D)",
+  "version": "2.2.0",
+  "description": "Transforma plantas baixas, rascunhos (sketches), máquinas ou referências em casas/edifícios 3D fotorrealistas construídos peça por peça no Blender (Blueprint), cenas e simuladores 3D WebGPU no navegador com Vercel vgpu (e fallback Three.js/Teardown) e vídeos de montagem com áudio procedural em -14 LUFS.",
+  "author": {
+    "name": "Elvar / Kimi 3D Academy / Nyxera0x / Vercel Labs / Antigravity"
+  },
+  "repository": "https://github.com/Nyxera0x/blueprint",
+  "suggestedPrompts": [
+    "Transforme este rascunho ou planta baixa em uma casa 3D no Blender com vídeo de montagem peça por peça",
+    "Construa uma cena ou simulador 3D interativo no navegador usando Vercel vgpu (WebGPU)",
+    "Exporte este modelo do Blender com bake PBR otimizado para rodar no navegador em vgpu"
+  ]
+}

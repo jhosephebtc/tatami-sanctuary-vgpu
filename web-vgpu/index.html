@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Quiet Tatami Sanctuary — Vercel vgpu (WebGPU)</title>
+    <style>
+      @font-face {
+        font-family: "Geist Serif";
+        src: url("/fonts/GeistSerif-Regular.otf") format("opentype");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      :root {
+        --ink: #f7efe4;
+        --ink-soft: rgba(247, 239, 228, 0.78);
+        --ink-muted: rgba(247, 239, 228, 0.54);
+        --accent: #eab06a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #140d08;
+        color: var(--ink);
+        font-family: "Geist Serif", Georgia, "Times New Roman", serif;
+        -webkit-font-smoothing: antialiased;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      #canvas-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
+
+      #canvas-wrap canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Native vgpu refractive Liquid Glass canvas sitting transparently behind controls */
+      #liquid-hud-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      /* Pure borderless, background-free editorial copy floating directly over the room */
+      .editorial-left {
+        position: fixed;
+        top: 28px;
+        left: 34px;
+        z-index: 3;
+        max-width: 390px;
+        pointer-events: none;
+        background: none;
+        border: none;
+        text-shadow: 0 2px 22px rgba(14, 8, 4, 0.72), 0 1px 4px rgba(14, 8, 4, 0.55);
+      }
+
+      .vercel-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 0 14px 0;
+        color: var(--ink);
+        opacity: 0.96;
+      }
+
+      .vercel-mark svg {
+        width: 18px;
+        height: 16px;
+        display: block;
+        filter: drop-shadow(0 2px 10px rgba(14, 8, 4, 0.7));
+      }
+
+      .vercel-mark span {
+        font-size: 13px;
+        letter-spacing: 0.16em;
+        color: var(--ink-soft);
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin: 0 0 8px 0;
+        opacity: 0.92;
+      }
+
+      .hero-title {
+        font-size: 30px;
+        line-height: 1.12;
+        font-weight: 400;
+        margin: 0 0 10px 0;
+        letter-spacing: -0.01em;
+      }
+
+      .hero-copy {
+        font-size: 14px;
+        line-height: 1.62;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+
+      .editorial-right {
+        position: fixed;
+        top: 30px;
+        right: 34px;
+        z-index: 3;
+        max-width: 245px;
+        text-align: right;
+        pointer-events: none;
+        background: none;
+        border: none;
+        text-shadow: 0 2px 20px rgba(14, 8, 4, 0.78), 0 1px 4px rgba(14, 8, 4, 0.65);
+      }
+
+      .note-heading {
+        font-size: 15px;
+        color: var(--ink);
+        margin: 0 0 5px 0;
+      }
+
+      .note-body {
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--ink-soft);
+        margin: 0 0 10px 0;
+      }
+
+      .engine-caption {
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--ink-muted);
+        margin: 0;
+      }
+
+      /* Borderless Liquid Controls Layer — visual glass body rendered by vgpu liquid_hud.wgsl */
+      .hud-bottom {
+        position: fixed;
+        bottom: 26px;
+        left: 34px;
+        right: 34px;
+        z-index: 3;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        pointer-events: none;
+      }
+
+      .liquid-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        pointer-events: auto;
+      }
+
+      .liquid-pill {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px 18px;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: var(--ink);
+        font-family: "Geist Serif", Georgia, serif;
+        font-size: 13.5px;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        border-radius: 999px;
+        text-shadow: 0 1px 8px rgba(10, 6, 3, 0.65);
+        transition: color 0.25s ease, transform 0.25s ease;
+        white-space: nowrap;
+      }
+
+      .liquid-pill:hover {
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      .liquid-pill.active {
+        color: #ffdfb2;
+      }
+
+      .slider-pill {
+        cursor: default;
+        padding: 9px 18px;
+        gap: 12px;
+      }
+
+      .slider-label {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        white-space: nowrap;
+      }
+
+      .slider-val {
+        font-size: 12px;
+        color: var(--accent);
+        min-width: 34px;
+        text-align: right;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 96px;
+        height: 2px;
+        background: rgba(247, 239, 228, 0.34);
+        border: none;
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #f9d29c;
+        border: none;
+        box-shadow: 0 0 12px rgba(234, 176, 106, 0.85);
+      }
+
+      /* 3-dots settings button (shown on smaller screens) */
+      .more-btn {
+        display: none;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        font-size: 20px;
+        line-height: 1;
+        letter-spacing: 2px;
+      }
+
+      /* Popover menu wrapper for lighting controls on small screens */
+      .settings-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        pointer-events: auto;
+      }
+
+      .settings-drawer {
+        display: contents;
+      }
+
+      #status {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(18, 11, 7, 0.9);
+        color: var(--ink);
+        font-family: "Geist Serif", Georgia, serif;
+        font-size: 16px;
+        letter-spacing: 0.02em;
+        transition: opacity 0.45s ease;
+      }
+
+      #status.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Responsive layout for smaller screens (tablets & phones <= 920px) */
+      @media (max-width: 920px) {
+        .editorial-left {
+          top: max(18px, env(safe-area-inset-top));
+          left: 20px;
+          max-width: none;
+        }
+
+        .vercel-mark {
+          margin-bottom: 0;
+        }
+
+        /* Hide extra editorial copy on compact screens, leaving ONLY the Vercel vgpu logo at the top */
+        .eyebrow,
+        .hero-title,
+        .hero-copy,
+        .editorial-right {
+          display: none;
+        }
+
+        .hud-bottom {
+          bottom: max(18px, env(safe-area-inset-bottom));
+          left: 16px;
+          right: 16px;
+          flex-wrap: nowrap;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        #camera-buttons {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+          gap: 6px;
+          max-width: calc(100vw - 88px);
+          padding: 2px 0;
+        }
+
+        #camera-buttons::-webkit-scrollbar {
+          display: none;
+        }
+
+        #camera-buttons .liquid-pill {
+          padding: 9px 13px;
+          font-size: 12.5px;
+        }
+
+        .settings-wrap {
+          position: relative;
+          flex-shrink: 0;
+        }
+
+        .more-btn {
+          display: inline-flex;
+        }
+
+        .settings-drawer {
+          display: none;
+          position: fixed;
+          right: 16px;
+          bottom: calc(max(18px, env(safe-area-inset-bottom)) + 56px);
+          flex-direction: column;
+          align-items: stretch;
+          gap: 12px;
+          padding: 16px 18px;
+          border-radius: 22px;
+          min-width: 248px;
+          background: rgba(22, 14, 9, 0.44);
+          backdrop-filter: blur(22px);
+          -webkit-backdrop-filter: blur(22px);
+          z-index: 4;
+          pointer-events: auto;
+        }
+
+        /* Hide secondary camera pills on narrow phones so the bottom bar stays crisp & unclipped;
+           all 4 views remain accessible via the 3-dots menu */
+        #camera-buttons button[data-cam="cloth"] {
+          display: none;
+        }
+
+        #camera-buttons .liquid-pill {
+          padding: 9px 11px;
+          font-size: 12px;
+        }
+
+        .settings-drawer.open {
+          display: flex;
+        }
+
+        /* Inside the mobile liquid drawer, each control sits cleanly without competing nested pills */
+        .settings-drawer .liquid-pill {
+          width: 100%;
+          justify-content: space-between;
+          padding: 6px 4px;
+        }
+
+        .settings-drawer input[type="range"] {
+          width: 104px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap"></div>
+    <canvas id="liquid-hud-canvas"></canvas>
+    <div id="status">Preparing WebGPU sanctuary and liquid shaders…</div>
+
+    <!-- Floating borderless editorial copy (no background behind text) -->
+    <header class="editorial-left">
+      <div class="vercel-mark" aria-label="Vercel vgpu">
+        <svg viewBox="0 0 76 65" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
+        </svg>
+        <span>vgpu</span>
+      </div>
+      <p class="eyebrow">Rokujo · Six-Mat Tatami Room</p>
+      <h1 class="hero-title">Warm Clay, Woven Linen &amp; Andon Glow</h1>
+      <p class="hero-copy">
+        Six woven igusa tatami mats, raw hand-troweled juraku clay plaster, aged walnut joinery, and a glowing handmade washi lantern resting beside stone-washed terracotta linen.
+      </p>
+    </header>
+
+    <aside class="editorial-right">
+      <p class="note-heading" id="scene-note-title">Late-Afternoon Stillness</p>
+      <p class="note-body" id="scene-note-body">
+        Warm diffused sunlight filters through translucent shoji paper, meeting the amber glow of the bedside andon lantern across weathered wood and cloth.
+      </p>
+      <p class="engine-caption" id="backend-label">Initializing WebGPU · Vercel vgpu</p>
+    </aside>
+
+    <!-- Borderless controls backed by the live vgpu Liquid Glass shader -->
+    <nav class="hud-bottom" aria-label="Scene Controls">
+      <div class="liquid-group" id="camera-buttons">
+        <button class="liquid-pill active" data-liquid data-cam="hero">Sanctuary</button>
+        <button class="liquid-pill" data-liquid data-cam="lamp">Andon Lantern</button>
+        <button class="liquid-pill" data-liquid data-cam="cloth">Woven Linen</button>
+        <button class="liquid-pill" data-liquid data-cam="garden">Engawa &amp; Garden</button>
+      </div>
+
+      <div class="settings-wrap">
+        <div class="settings-drawer" id="settings-drawer" data-liquid-mobile-panel>
+          <div class="liquid-pill slider-pill" data-liquid-desktop data-energy="1">
+            <span class="slider-label">Exterior Sun</span>
+            <input id="env-rot-slider" type="range" min="0" max="360" step="1" value="32" />
+            <span class="slider-val" id="env-rot-val">32°</span>
+          </div>
+
+          <div class="liquid-pill slider-pill" data-liquid-desktop data-energy="1">
+            <span class="slider-label">Andon Glow</span>
+            <input id="lamp-slider" type="range" min="0.2" max="2.2" step="0.05" value="1.35" />
+            <span class="slider-val" id="lamp-val">135%</span>
+          </div>
+
+          <button class="liquid-pill" data-liquid-desktop id="mood-toggle">Retro Daylight</button>
+        </div>
+
+        <button
+          class="liquid-pill more-btn"
+          id="more-menu-btn"
+          data-liquid
+          aria-label="Lighting & Environment Settings"
+          aria-expanded="false"
+          title="Lighting & Environment Settings"
+        >
+          ⋯
+        </button>
+      </div>
+    </nav>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
