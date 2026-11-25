@@ -25,7 +25,7 @@
 
 ![12s Interactive Tour Contact Sheet](media/tour_contact_sheet.png)
 
-### Visual Progression (Blueprint → Look-Dev → Cycles → Live WebGPU)
+### Visual Progression (Floor Plan → Look-Dev → Cycles → Live WebGPU)
 
 | Hand-Drawn Floor Plan | Look-Dev Hero Reference | Andon Detail Reference |
 |---|---|---|
@@ -37,34 +37,33 @@
 
 ---
 
-## Installing the Agent Skills (`arquiteto` + `vgpu`)
+## Installing the Agent Skills (`arquiteto` + Vercel Labs `vgpu`)
 
-This project was authored using a unified global **Arquiteto** skill bundle combining **Blueprint** (`Nyxera0x/blueprint`) for piece-by-piece Blender architecture and **Vercel `vgpu`** (`vercel-labs/vgpu`) for WebGPU rendering in the browser.
-
-### 1. Install the official skills directly via `npx skills`
+To replicate this exact code-first 3D workflow — building scenes piece by piece in Blender and shipping them live to the browser in WebGPU — install just two skills globally:
 
 ```bash
-# 1. Architectural Blender piece-by-piece pipeline (Nyxera0x/blueprint)
-npx skills add Nyxera0x/blueprint -g
+# 1. Install the Arquiteto 3D skill (piece-by-piece Blender architecture, Cloth, PBR & toolkit)
+npx skills add jhosephebtc/tatami-sanctuary-vgpu -g
 
-# 2. Vercel Labs vgpu WebGPU & Blender-to-WebGPU pipeline (vercel-labs/vgpu)
+# 2. Install Vercel Labs' official vgpu skill (WebGPU, WGSL modules & Blender-to-WebGPU pipeline)
 npx skills add vercel-labs/vgpu -g
 ```
 
-### 2. Or install the unified `arquiteto` plugin bundle included in this repo
+### Antigravity Global Plugin Setup (Optional)
 
-Copy [`skills/arquiteto/`](skills/arquiteto/) into your global agent plugins directory (for Antigravity: `~/.gemini/config/plugins/arquiteto/`):
+If you use Google Antigravity and want the bundled `arquiteto` plugin with the always-on `vgpu` browser preference rule (`rules/AGENTS.md`):
 
 ```bash
 # macOS / Linux
 mkdir -p ~/.gemini/config/plugins/arquiteto
-cp -r skills/arquiteto/* ~/.gemini/config/plugins/arquiteto/
+cp -r plugin/arquiteto/* ~/.gemini/config/plugins/arquiteto/
+cp -r skills/arquiteto ~/.gemini/config/plugins/arquiteto/skills/arquiteto
 
 # Windows (PowerShell)
-Copy-Item -Recurse -Force .\skills\arquiteto\* "$env:USERPROFILE\.gemini\config\plugins\arquiteto\"
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.gemini\config\plugins\arquiteto\skills\arquiteto" | Out-Null
+Copy-Item -Recurse -Force .\plugin\arquiteto\* "$env:USERPROFILE\.gemini\config\plugins\arquiteto\"
+Copy-Item -Recurse -Force .\skills\arquiteto\* "$env:USERPROFILE\.gemini\config\plugins\arquiteto\skills\arquiteto\"
 ```
-
-The included [`skills/arquiteto/rules/AGENTS.md`](skills/arquiteto/rules/AGENTS.md) rule automatically instructs your coding agent to prioritize **Vercel `vgpu` (WebGPU)** whenever a 3D scene, shader, or Blender-exported asset runs in the browser, and to consult the project-local `vgpu docs` CLI as the source of truth.
 
 ---
 
@@ -132,7 +131,6 @@ node record_tour.mjs
 ## Credits & License
 
 - **WebGPU & WGSL tooling:** [Vercel Labs `vgpu`](https://github.com/vercel-labs/vgpu) (`liquid_hud.wgsl` inspired by `liquid-layout` in the `vgpu` examples gallery)
-- **Architectural code-first workflow:** [Nyxera0x/blueprint](https://github.com/Nyxera0x/blueprint)
 - **Exterior garden botanicals & moss rocks:** [Poly Haven](https://polyhaven.com) (CC0)
 - **Typography:** Geist Serif (Vercel)
 - **Code License:** MIT
