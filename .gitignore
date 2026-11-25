@@ -12,7 +12,7 @@ assets_polyhaven/
 export/
 textures/
 renders/
-references/
+/references/
 __pycache__/
 *.pyc
 .DS_Store
